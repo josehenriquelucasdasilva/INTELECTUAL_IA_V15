@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INTELECTUAL IA</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="topbar">
+    <button class="menu-btn" onclick="document.querySelector('.nav').classList.toggle('open')">☰</button>
+    <div class="brand">INTELECTUAL IA</div>
+    <select id="agentsel" onchange="AgentBar.switchTo(this.value)" title="Agente ativo" style="background:var(--ink);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:6px 8px;font-size:12.5px;max-width:150px"></select>
+    <button class="iconbtn" title="Gerenciar agentes" onclick="AgentsUI.open()" style="border:1px solid var(--line);color:var(--muted);background:none;border-radius:7px;padding:5px 9px;cursor:pointer">⚙</button>
+    <div class="gsearch">
+      <input id="gq" placeholder="Busca global: histórico, notas, biblioteca…" oninput="Search.run()" onfocus="Search.run()">
+      <div class="results" id="gresults"></div>
+    </div>
+  </div>
+
+  <div class="app">
+    <nav class="nav" id="nav">
+      <button data-v="chat" class="on" onclick="Shell.show('chat')">💬 Chat</button>
+      <button data-v="notas" onclick="Shell.show('notas')">📝 Notas</button>
+      <button data-v="biblioteca" onclick="Shell.show('biblioteca')">📚 Biblioteca</button>
+      <button data-v="imagens" onclick="Shell.show('imagens')">🎨 Imagens</button>
+      <button data-v="backup" onclick="Shell.show('backup')">💾 Backup</button>
+      <button data-v="memoria" onclick="Shell.show('memoria')">🧠 Memória</button>
+      <button data-v="config" onclick="Shell.show('config')">⚙️ Config</button>
+    </nav>
+
+    <!-- CHAT -->
+    <section class="view col2" id="view-chat">
+      <div class="pane">
+        <div class="pad"><button class="btn btn-pri" style="width:100%" onclick="ChatUI.newConv()">+ Novo chat</button>
+          <input class="search2" style="margin-top:10px" id="hsearch" placeholder="Buscar conversas…" oninput="ChatUI.list()"></div>
+        <div id="hlist"></div>
+      </div>
+      <div class="pane-b hide-m" id="chatpane">
+        <div class="msgs" id="msgs"><div class="empty" style="margin:auto">Crie um novo chat ou selecione um do histórico.</div></div>
+        <div id="micstatus" class="micstatus hide"></div>
+        <div class="composer">
+          <textarea id="cin" rows="1" placeholder="Escreva ou use o microfone…" oninput="Draft.saveDebounced()" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();ChatUI.send()}"></textarea>
+          <button class="mic" id="michistbtn" title="Histórico de transcrições" onclick="Mic.showHistory()" style="font-size:15px">🕘</button>
+          <button class="mic" id="micbtn" title="Ditar por voz" onclick="Mic.toggle()">🎤</button>
+          <button class="btn btn-pri" id="sendb" onclick="ChatUI.send()">Enviar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- NOTAS -->
+    <section class="view col2 hide" id="view-notas">
+      <div class="pane">
+        <div class="pad"><button class="btn btn-pri" style="width:100%" onclick="NotesUI.newNote()">+ Nova nota</button>
+          <input class="search2" style="margin-top:10px" id="nsearch" placeholder="Buscar (título, #tag, conteúdo)…" oninput="NotesUI.list()"></div>
+        <div class="lbl" style="display:flex;justify-content:space-between">PROJETOS <button class="acts" style="display:block;color:var(--accent)" onclick="NotesUI.newProject()">+</button></div>
+        <div id="nprojects" class="pad" style="padding-top:0"></div>
+        <div id="nlist"></div>
+      </div>
+      <div class="pane-b hide-m" id="npane">
+        <div id="neditor" class="hide" style="display:flex;flex-direction:column;min-height:0;flex:1">
+          <div class="ntop">
+            <input class="title" id="ntitle" placeholder="Título" oninput="NotesUI.touch()">
+            <select id="nproj" onchange="NotesUI.touch()"></select>
+            <input class="tagin" id="ntags" placeholder="tags" oninput="NotesUI.touch()">
+            <button class="iconbtn" id="nfav" onclick="NotesUI.fav()">★</button>
+            <button class="iconbtn" onclick="NotesUI.prev()">👁</button>
+            <button class="iconbtn" onclick="NotesUI.dup()">⧉</button>
+            <button class="iconbtn" onclick="NotesUI.exp('md')">.md</button>
+            <button class="iconbtn" onclick="NotesUI.del()">🗑</button>
+          </div>
+          <div class="editzone"><textarea id="nbody" placeholder="Markdown. Use [[Nota]] para ligar." oninput="NotesUI.touch()"></textarea><div class="preview hide" id="npreview"></div></div>
+          <div class="backlinks" id="nback"></div>
+        </div>
+        <div id="nwelcome" class="empty" style="margin:auto">Selecione ou crie uma nota.</div>
+      </div>
+    </section>
+
+    <!-- BIBLIOTECA -->
+    <section class="view col2 hide" id="view-biblioteca">
+      <div class="pane"><div id="lcats" class="pad"></div><div id="lstats" class="pad" style="border-top:1px solid var(--line);font-size:12px;color:var(--muted);line-height:1.7"></div></div>
+      <div class="pane-b hide-m">
+        <div class="drop" id="ldrop" onclick="document.getElementById('lpick').click()"><b>Arraste arquivos</b> ou clique · múltiplo</div>
+        <input type="file" id="lpick" multiple class="hide" onchange="LibUI.pick(event)">
+        <div class="prog" id="lprog"><div style="font-size:12px;color:var(--muted)" id="lpf"></div><div class="pbar"><div id="lfill"></div></div></div>
+        <div class="grid" id="lgrid"></div>
+      </div>
+    </section>
+
+    <!-- IMAGENS -->
+    <section class="view col2 hide" id="view-imagens">
+      <div class="pane">
+        <div class="pad">
+          <div class="lbl" style="padding-top:0">ESTÚDIO DE PROMPT</div>
+          <textarea id="i_subject" class="search2" rows="2" placeholder="Pedido: ex. painel de IA masculino futurista" style="resize:vertical"></textarea>
+          <input id="i_style" class="search2" style="margin-top:6px" placeholder="Estilo (ex. tecnológico, cinematográfico)">
+          <input id="i_char" class="search2" style="margin-top:6px" placeholder="Personagem (opcional)">
+          <input id="i_bg" class="search2" style="margin-top:6px" placeholder="Fundo (ex. escuro, luzes azuis)">
+          <input id="i_colors" class="search2" style="margin-top:6px" placeholder="Cores (ex. azul e ciano)">
+          <input id="i_details" class="search2" style="margin-top:6px" placeholder="Detalhes obrigatórios">
+          <input id="i_neg" class="search2" style="margin-top:6px" placeholder="NÃO gerar (texto deformado, mãos erradas…)">
+          <div class="lbl">OPÇÕES</div>
+          <div class="row" style="gap:6px">
+            <select id="i_model" class="search2" style="flex:1"><option value="flux">flux (qualidade)</option><option value="turbo">turbo (rápido)</option><option value="gptimage">gptimage</option></select>
+            <select id="i_res" class="search2" style="flex:1"><option value="1024x1024">1024×1024</option><option value="1280x720">1280×720</option><option value="1920x1080">1920×1080</option><option value="768x1024">768×1024 (retrato)</option></select>
+          </div>
+          <div class="row" style="gap:6px;margin-top:6px">
+            <select id="i_var" class="search2" style="flex:1"><option value="1">1 imagem</option><option value="2">2 variações</option><option value="4">4 variações</option></select>
+            <input id="i_seed" class="search2" style="flex:1" placeholder="Seed (vazio = aleatória)">
+          </div>
+          <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;color:var(--muted)"><input type="checkbox" id="i_enhance" checked> Deixar a IA melhorar o prompt (enhance)</label>
+          <button class="btn btn-pri" style="width:100%;margin-top:10px" id="i_gen" onclick="ImageUI.generate()">🎨 Gerar</button>
+          <div class="row" style="gap:6px;margin-top:6px">
+            <button class="btn btn-ghost" style="flex:1" onclick="document.getElementById('i_upload').click()">Analisar imagem externa</button>
+            <input type="file" id="i_upload" accept="image/*" class="hide" onchange="ImageUI.analyzeUpload(event)">
+          </div>
+        </div>
+      </div>
+      <div class="pane-b hide-m" style="overflow-y:auto">
+        <div id="i_result" class="pad"><div class="empty" style="margin-top:30px">Preencha o estúdio e clique em Gerar. As imagens são reais (Pollinations) e salvas no histórico.</div></div>
+        <div class="lbl" style="padding-left:14px">HISTÓRICO DE IMAGENS</div>
+        <div id="i_history" class="grid" style="padding-top:0"></div>
+      </div>
+    </section>
+
+    <!-- BACKUP -->
+    <section class="view hide" id="view-backup" style="overflow-y:auto"></section>
+
+    <!-- MEMÓRIA (abas: Usuário / Projetos) -->
+    <section class="view hide" id="view-memoria" style="display:flex;flex-direction:column;min-height:0">
+      <div style="display:flex;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line)">
+        <button class="btn btn-ghost" id="mtb-users" style="border-color:var(--accent)" onclick="MemTabs.show('users')">👤 Usuário</button>
+        <button class="btn btn-ghost" id="mtb-projects" onclick="MemTabs.show('projects')">📁 Projetos</button>
+        <button class="btn btn-ghost" id="mtb-recent" onclick="MemTabs.show('recent')">🕒 Recentes</button>
+        <button class="btn btn-ghost" id="mtb-pinned" onclick="MemTabs.show('pinned')">📌 Fixadas</button>
+      </div>
+      <!-- ABA USUÁRIO -->
+      <div class="col2" id="mtab-users" style="flex:1;min-height:0">
+        <div class="pane">
+          <div class="pad">
+            <div class="card" id="mprofilecard" style="margin:0 0 10px;padding:12px"></div>
+            <button class="btn btn-pri" style="width:100%" onclick="MemoryUI.newMem()">+ Nova memória</button>
+            <input class="search2" style="margin-top:10px" id="msearch" placeholder="Buscar memórias…" oninput="MemoryUI.list()">
+            <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap" id="mfilters"></div>
+          </div>
+          <div id="mlist"></div>
+        </div>
+        <div class="pane-b hide-m" id="mpane">
+          <div id="meditor" class="hide" style="display:flex;flex-direction:column;min-height:0;flex:1"></div>
+          <div id="mprofileform" class="hide" style="display:flex;flex-direction:column;min-height:0;flex:1"></div>
+          <div id="mwelcome" class="empty" style="margin:auto">Selecione uma memória, ou edite seu perfil.<br>A IA consulta isto automaticamente antes de responder.</div>
+        </div>
+      </div>
+      <!-- ABA PROJETOS -->
+      <div class="col2 hide" id="mtab-projects" style="flex:1;min-height:0">
+        <div class="pane">
+          <div class="pad">
+            <button class="btn btn-pri" style="width:100%" onclick="ProjectsUI.newProject()">+ Novo projeto</button>
+            <input class="search2" style="margin-top:10px" id="psearch" placeholder="Buscar projetos…" oninput="ProjectsUI.list()">
+            <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap" id="pfilters"></div>
+          </div>
+          <div id="plist"></div>
+        </div>
+        <div class="pane-b hide-m" id="ppane">
+          <div id="peditor" class="hide" style="display:flex;flex-direction:column;min-height:0;flex:1;overflow-y:auto"></div>
+          <div id="pwelcome" class="empty" style="margin:auto">Selecione um projeto, ou crie um novo.<br>A IA consulta o dossiê do projeto que você mencionar na conversa.</div>
+        </div>
+      </div>
+      <!-- ABA RECENTES -->
+      <div class="hide" id="mtab-recent" style="flex:1;min-height:0;overflow-y:auto"></div>
+      <!-- ABA FIXADAS -->
+      <div class="hide" id="mtab-pinned" style="flex:1;min-height:0;overflow-y:auto"></div>
+    </section>
+
+    <!-- CONFIG -->
+    <section class="view hide" id="view-config" style="overflow-y:auto"></section>
+  </div>
+
+  <!-- modal arquivo -->
+  <div class="modal" id="modal" onclick="if(event.target===this)LibUI.close()">
+    <div class="sheet"><div class="top"><span class="t" id="mt"></span>
+      <button class="iconbtn" id="mfav" onclick="LibUI.fav()">★</button>
+      <button class="iconbtn" onclick="LibUI.dl()">⬇</button>
+      <button class="iconbtn" onclick="LibUI.trash()">🗑</button>
+      <button class="iconbtn" onclick="LibUI.close()">✕</button></div>
+      <div class="vw" id="vw"></div><div class="meta" id="vmeta"></div></div>
+  </div>
+
+  <div class="modal" id="agentsModal" onclick="if(event.target===this)AgentsUI.close()">
+    <div class="sheet" style="max-width:520px">
+      <div class="top"><span class="t">Agentes (até 20)</span><button class="iconbtn" onclick="AgentsUI.close()">✕</button></div>
+      <div class="vw" style="display:block;align-items:stretch;padding:0">
+        <div style="padding:12px"><div style="display:flex;gap:8px"><input id="newagent" class="search2" placeholder="Nome do novo agente…" style="flex:1"><button class="btn btn-pri" onclick="AgentsUI.add()">+ Criar</button></div></div>
+        <div id="agentlist" style="padding:0 12px 14px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="micHistModal" onclick="if(event.target===this)Mic.closeHistory()">
+    <div class="sheet" style="max-width:520px">
+      <div class="top"><span class="t">Histórico de transcrições</span><button class="iconbtn" onclick="Mic.closeHistory()">✕</button></div>
+      <div class="vw" style="display:block;align-items:stretch;padding:12px"><div id="michistlist"></div></div>
+    </div>
+  </div>
+
+  <div id="toasts"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
